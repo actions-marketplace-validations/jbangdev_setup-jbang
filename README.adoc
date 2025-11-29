@@ -7,7 +7,9 @@ image:https://github.com/{project-owner}/{project-name}/workflows/Test/badge.svg
 image:https://img.shields.io/github/v/release/{project-owner}/{project-name}["GitHub release", link="https://github.com/jreleaser/release-action/releases"]
 image:https://img.shields.io/twitter/follow/{project-owner}?style=social["Twitter Follow", link="https://twitter.com/jreleaser"]
 
-This action setup link:https://jbang.dev[JBang] cli.
+This action setup link:https://jbang.dev[JBang] cli for GitHub Actions.
+
+This is recommended over using the container image based `jbangdev/jbang-action` which is slower. `setup-java` is faster and "just works" in comparison.
 
 == Usage
 
@@ -42,7 +44,7 @@ jobs:
         
 ----
 
-IMPORTANT: This action requires Java 8+ to download and execute JBang. The action will setup a suitable Java runtime automatically if one is not available. GitHub runners seem to have a default Java 11 available. If you would like to use a different Java version/distribution then add a `actions/setup-java` as needed. Example:
+IMPORTANT: This action will download a suitable Java runtime automatically if one is not available. Thus this action does not need a pre-configured Java setup. The action and JBang will though prefer to use a JDK if it is available. GitHub runners have a default Java 11 available thus it will use that Java by default. If you would like to use a different Java version/distribution, then add a `actions/setup-java` as needed. Example:
 
 [source,yaml]
 ----
@@ -67,14 +69,29 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          java-version: '20'
+          java-version: | 
+            11
+            17
           
       - name: Setup JBang
         uses: jbangdev/setup-jbang@main
-       
-      - name: complexhelloworld
+
+      - name: Configure java
         run: |
-          jbang properties@jbangdev java.version
+          jbang jdk install 11 ${{env.JAVA_HOME_11_X64}}
+          jbang jdk install 17 ${{env.JAVA_HOME_17_X64}}
+
+       - name: complexhelloworld
+        run: |
+          jbang properties@jbangdev java.vendor.version # uses the default java version
+
+      - name: test output 11
+        run:  jbang --java 11 properties@jbangdev java.vendor.version # use java 11
+      - name: test output 17
+        run:  jbang --java 17 properties@jbangdev java.vendor.version # use java 17
+       
+     
+      
         
 ----
 
